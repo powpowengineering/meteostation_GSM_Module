@@ -1,43 +1,57 @@
-#include "Init.h"
+//#include "Init.h"
 #include "ModuleRAK811.h"
 
 
 #define TIMEOUT_LORA_RECEIVE        (2000) // ms
-#defien SIZE_IN_BUFF                (512)
+#define SIZE_IN_BUFF                (512)
+#define PIN_PWR_GSM					(7)
 
-uint8_t inBuff[SIZE_IN_BUFF];
-uint16_t cntByte=0;
+
+char inBuff[SIZE_IN_BUFF];
+unsigned int cntByte=0;
 
 void setup()
 {
-    Serial.begin(9600);
-    Serial3.begin(9600); // UART for GSM module 
-    
+    RAK811_init();// RAK811 uses Serial2
+    RAK811_confMode(RAK811_MODE_LORA_P2P);
+    delay(1000);
+    RAK811_confP2Pprm("869525000",12,0,1,8,20);
+    delay(1000);
+    RAK811_confTransferMode(RAK811_RECEIVER_MODE);
+    delay(1000);
+	
+    Serial.begin(9600); 
+	Serial3.begin(19200); // UART for GSM module 
+	
+	pinMode(PIN_PWR_GSM, OUTPUT);
+	
+	//Switch on power for GSM module
+    digitalWrite(PIN_PWR_GSM, LOW);
+	
+	Serial3.println("AT");
+  delay(1000);
+	Serial3.println("AT+CMGF=1");                        // Выбирает формат SMS
+ delay(1000);
+	Serial3.println("AT+CMGS=\"+79296232270\"");         // Отправка СМС на указанный номер
+ delay(1000);
+	//Serial3.print("I am future GSM module for yours meteo station :)"); // Тест сообщения
+ delay(1000);
+	Serial3.write(26);//???
+ delay(1000);
 }
 
 void loop()
 {
-    if (Serial3.available() > 0)
-    {
-        char ch = Serial3.read();
-        Serial.ptint(ch);
-        if ('\r' == ch)
-        {
-            cntByte = 0;
-        }
-        else
-        {
-            if (SIZE_IN_BUFF > cntByte)
-            {
-                inBuff[cntByte++] = ch;
-            }
-            else
-            {
-                Serial.println("\r\nError - Array index out of bounds");
-                cntByte = 0;
-            }
-        }
-    }
+   if (Serial2.available() > 0)// if (RAK811_receiveData(inBuff, SIZE_IN_BUFF) > 0)
+	{
+		Serial.print(Serial2.read());
+		//Serial.print(inBuff);
+		//Serial3.println("AT+CMGS=\"+79296232270\"");         // Отправка СМС на указанный номер
+		//delay(1000);
+		//Serial3.print(inBuff); // Тест сообщения
+		//delay(1000);
+	    //Serial3.write(26);//???
+	}
+	//delay(1000);
     
 }
-
