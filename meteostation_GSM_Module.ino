@@ -20,7 +20,7 @@ void setup()
     RAK811_confTransferMode(RAK811_RECEIVER_MODE);
     delay(1000);
 	
-    Serial.begin(9600); 
+    Serial.begin(115200); 
 	Serial3.begin(19200); // UART for GSM module 
 	
 	pinMode(PIN_PWR_GSM, OUTPUT);
@@ -34,7 +34,7 @@ void setup()
  delay(1000);
 	Serial3.println("AT+CMGS=\"+79296232270\"");         // Отправка СМС на указанный номер
  delay(1000);
-	//Serial3.print("I am future GSM module for yours meteo station :)"); // Тест сообщения
+	Serial3.print("I am future GSM module for yours meteo station :)"); // Тест сообщения
  delay(1000);
 	Serial3.write(26);//???
  delay(1000);
@@ -42,16 +42,17 @@ void setup()
 
 void loop()
 {
-   if (Serial2.available() > 0)// if (RAK811_receiveData(inBuff, SIZE_IN_BUFF) > 0)
+  if (RAK811_receiveData(inBuff, SIZE_IN_BUFF) > 0)
 	{
-		Serial.print(Serial2.read());
-		//Serial.print(inBuff);
-		//Serial3.println("AT+CMGS=\"+79296232270\"");         // Отправка СМС на указанный номер
-		//delay(1000);
-		//Serial3.print(inBuff); // Тест сообщения
-		//delay(1000);
-	    //Serial3.write(26);//???
+		//Serial.write(Serial2.read());
+		//Serial.println(">0");
+		Serial.write(inBuff);
+		Serial3.println("AT+CMGS=\"+79296232270\"");         // Отправка СМС на указанный номер
+		delay(1000);
+		Serial3.write(inBuff); // Тест сообщения
+		delay(1000);
+	  Serial3.write(26);//???
 	}
-	//delay(1000);
+	
     
 }
