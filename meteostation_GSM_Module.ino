@@ -6,6 +6,12 @@
 #define SIZE_IN_BUFF                (512)
 #define PIN_PWR_GSM					(7)
 
+typedef enum
+{
+    OFF = 0,
+    ON = 1,
+}GSM_MODULE_state;
+
 
 char inBuff[SIZE_IN_BUFF];
 char tempBuff[SIZE_IN_BUFF];
@@ -67,6 +73,8 @@ void loop()
 {
   unsigned int cntSym=0;
   
+  
+  // if have message from meteostation
   if (RAK811_receiveData(inBuff, SIZE_IN_BUFF) > 0)
 	{
 		//Serial.write(Serial2.read());
@@ -110,3 +118,20 @@ void loop()
 	
     
 }
+
+
+
+
+void GSM_MODULE_switchPwr(GSM_MODULE_state state)
+{
+    if (ON == state)
+    {
+        digitalWrite(PIN_PWR_GSM, HIGH);
+    }
+    else (OFF == state)
+    {
+        digitalWrite(PIN_PWR_GSM, LOW);
+    }
+}
+
+
