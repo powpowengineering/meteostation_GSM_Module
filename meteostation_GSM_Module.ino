@@ -6,8 +6,9 @@
 #define SIZE_IN_BUFF                (512)
 #define PIN_PWR_GSM					(7)
 
-#define VBAT_PIN                    (A1)
+#define VBAT_PIN                    (A0)
 #define NUM_SAMPLES 10
+#define WAIT_GSM_POWER_ON           (50000)
 
 typedef enum
 {
@@ -46,8 +47,9 @@ void setup()
 	pinMode(PIN_PWR_GSM, OUTPUT);
 	
     // Power on GSM
-    GSM_MODULE_switchPwr(ON);
-  
+    GSM_MODULE_switchPwr(OFF);
+
+
     /*
 	Serial3.println("AT");
     delay(500);
@@ -62,6 +64,7 @@ void setup()
     // Power on GSM
     GSM_MODULE_switchPwr(ON);
     */
+   
 }
 
 void loop()
@@ -96,20 +99,27 @@ void loop()
         // Convert hex to Ascii
         RAK811_hexToAscii(&inBuff[cntSym+1],tempBuff);
         
+		vbat = ReadVbat();
+		
         // Insert converted data into buffer
         for (int i=0;i<SIZE_IN_BUFF;i++)
         {
             inBuff[cntSym+1+i]=tempBuff[i];
             if(0 == tempBuff[i])
             {
-                break;
+				char str_temp[10];
+                dtostrf(vbat, 4, 2, str_temp);
+				snprintf(&inBuff[cntSym+1+i],15,"|VbatGSM=%s",str_temp);
+				break;
             }
         }
         
-        vbat = ReadVbat();
+        
         
         Serial.println(inBuff);
-        delay(3000);
+        delay(WAIT_GSM_POWER_ON);
+        Serial3.println("AT");
+        delay(500);
         Serial3.println("AT+CMGF=1");                        // Выбирает формат SMS
         delay(500);
         Serial3.println("AT+CMGS=\"+79296232270\"");         // Отправка СМС на указанный номер
@@ -123,7 +133,8 @@ void loop()
         GSM_MODULE_switchPwr(OFF);
     }
 	
-    
+
+	
 }
 
 
@@ -135,7 +146,7 @@ void GSM_MODULE_switchPwr(GSM_MODULE_state state)
     {
         digitalWrite(PIN_PWR_GSM, HIGH);
     }
-    else (OFF == state)
+    else if (OFF == state)
     {
         digitalWrite(PIN_PWR_GSM, LOW);
     }
@@ -154,12 +165,10 @@ float ReadVbat(void)
           sample_count++;
       }
       // use 3.3 for a 3.3V ADC reference voltage
-      voltage = 0.99516*(sum/NUM_SAMPLES)* (3.3/1024.0)/(r1/(r1+r2));
+      voltage = 1.02857*(sum/NUM_SAMPLES)* (3.3/1024.0)/(r1/(r1+r2));
       // send voltage for display o n Serial Monitor
       // divides by 6.24/6 is the calibrated voltage divide
 
       return voltage;
 
 }//end of ReadVbat
-
-
